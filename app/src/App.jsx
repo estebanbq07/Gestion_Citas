@@ -1,10 +1,10 @@
 import { AppLayout } from '@/components/layout/AppLayout'
-import { HomePage } from '@/pages/HomePage'
+import { AppRouter } from '@/routes/AppRouter'
 
 function App() {
   return (
     <AppLayout>
-      <HomePage />
+      <AppRouter />
     </AppLayout>
   )
 }
