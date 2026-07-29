@@ -1,0 +1,219 @@
+generator client {
+  provider = "prisma-client-js"
+  output   = "../generated/prisma"
+  engineType    = "binary"
+}
+
+datasource db {
+  provider = "mysql"
+}
+
+model Rol {
+  id          Int       @id @default(autoincrement())
+  nombre      String    @unique @db.VarChar(50)
+  descripcion String?   @db.VarChar(255)
+  activo      Boolean   @default(true)
+
+  usuarios    Usuario[]
+
+  @@map("roles")
+}
+
+model Usuario {
+  id             Int       @id @default(autoincrement())
+  nombre         String    @db.VarChar(100)
+  primerApellido String    @db.VarChar(100)
+  segundoApellido String?  @db.VarChar(100)
+  correo         String    @unique @db.VarChar(150)
+  telefono       String?   @db.VarChar(25)
+  passwordHash   String    @db.VarChar(255)
+  activo         Boolean   @default(true)
+  rolId          Int
+  creadoEn       DateTime  @default(now())
+  actualizadoEn  DateTime  @updatedAt
+
+  rol            Rol       @relation(fields: [rolId], references: [id])
+  empleado       Empleado?
+  citasCliente   Cita[]    @relation("CitasCliente")
+  citasCreadas   Cita[]    @relation("CitasCreadas")
+
+  @@index([rolId])
+  @@map("usuarios")
+}
+
+model Especialidad {
+  id          Int        @id @default(autoincrement())
+  nombre      String     @unique @db.VarChar(100)
+  descripcion String?    @db.VarChar(255)
+  activo      Boolean    @default(true)
+
+  empleados   Empleado[]
+  servicios   Servicio[]
+
+  @@map("especialidades")
+}
+
+model Servicio {
+  id              Int          @id @default(autoincrement())
+  nombre          String       @unique @db.VarChar(120)
+  descripcion     String       @db.VarChar(500)
+  precioBase      Decimal      @db.Decimal(10, 2)
+  duracionMinutos Int
+  imagen          String?      @db.VarChar(255)
+  activo          Boolean      @default(true)
+  especialidadId  Int
+  creadoEn        DateTime     @default(now())
+  actualizadoEn   DateTime     @updatedAt
+
+  especialidad    Especialidad @relation(fields: [especialidadId], references: [id])
+  empleados       Empleado[]   @relation("EmpleadoServicios")
+  citas           Cita[]
+
+  @@index([especialidadId])
+  @@map("servicios")
+}
+
+model ServicioAdicional {
+  id             Int       @id @default(autoincrement())
+  nombre         String    @unique @db.VarChar(120)
+  descripcion    String    @db.VarChar(500)
+  precio         Decimal   @db.Decimal(10, 2)
+  activo         Boolean   @default(true)
+  creadoEn       DateTime  @default(now())
+  actualizadoEn  DateTime  @updatedAt
+
+  citas          Cita[]    @relation("CitaAdicionales")
+
+  @@map("servicios_adicionales")
+}
+
+model Empleado {
+  id              Int        @id @default(autoincrement())
+  usuarioId       Int        @unique
+  especialidadId  Int
+  codigoEmpleado  String     @unique @db.VarChar(30)
+  descripcion     String?    @db.VarChar(500)
+  activo          Boolean    @default(true)
+  creadoEn        DateTime   @default(now())
+  actualizadoEn   DateTime   @updatedAt
+
+  usuario         Usuario       @relation(fields: [usuarioId], references: [id])
+  especialidad    Especialidad  @relation(fields: [especialidadId], references: [id])
+  servicios       Servicio[]    @relation("EmpleadoServicios")
+  citas           Cita[]
+  restricciones   RestriccionHorario[]
+
+  @@index([especialidadId])
+  @@map("empleados")
+}
+
+model EstadoCita {
+  id          Int       @id @default(autoincrement())
+  nombre      String    @unique @db.VarChar(50)
+  descripcion String?   @db.VarChar(255)
+  bloqueaDisponibilidad Boolean @default(true)
+  permiteCancelacionCliente Boolean @default(false)
+  permiteEdicion Boolean @default(true)
+  color String? @db.VarChar(30)
+  orden Int?
+  activo      Boolean   @default(true)
+
+  citas       Cita[]
+
+  @@map("estados_cita")
+}
+
+model DiaSemana {
+  id          Int       @id @default(autoincrement())
+  nombre      String    @unique @db.VarChar(30)
+  numeroOrden Int       @unique
+
+  horarios    HorarioAtencion[]
+
+  @@map("dias_semana")
+}
+
+model HorarioAtencion {
+  id          Int      @id @default(autoincrement())
+  diaSemanaId Int
+  horaInicio  DateTime @db.Time(0)
+  horaFin     DateTime @db.Time(0)
+  activo      Boolean  @default(true)
+
+  diaSemana   DiaSemana @relation(fields: [diaSemanaId], references: [id])
+
+  @@unique([diaSemanaId, horaInicio, horaFin])
+  @@map("horarios_atencion")
+}
+
+model TipoRestriccionHorario {
+  id          Int      @id @default(autoincrement())
+  nombre      String   @unique @db.VarChar(80)
+  descripcion String?  @db.VarChar(255)
+
+  restricciones RestriccionHorario[]
+
+  @@map("tipos_restriccion_horario")
+}
+
+model RestriccionHorario {
+  id                  Int       @id @default(autoincrement())
+  tipoRestriccionId   Int
+  empleadoId          Int?
+  fecha               DateTime  @db.Date
+  horaInicio          DateTime? @db.Time(0)
+  horaFin             DateTime? @db.Time(0)
+  todoElDia           Boolean   @default(false)
+  motivo              String    @db.VarChar(255)
+  activo              Boolean   @default(true)
+  creadoEn            DateTime  @default(now())
+  actualizadoEn       DateTime  @updatedAt
+
+  tipoRestriccion     TipoRestriccionHorario @relation(fields: [tipoRestriccionId], references: [id])
+  empleado            Empleado? @relation(fields: [empleadoId], references: [id])
+
+  @@index([tipoRestriccionId])
+  @@index([empleadoId])
+  @@index([fecha])
+  @@map("restricciones_horario")
+}
+
+model Cita {
+  id                Int       @id @default(autoincrement())
+  clienteId         Int
+  empleadoId        Int
+  servicioId        Int
+  estadoCitaId      Int
+  creadoPorUsuarioId Int
+
+  fecha             DateTime  @db.Date
+  horaInicio        DateTime  @db.Time(0)
+  horaFin           DateTime  @db.Time(0)
+
+  duracionMinutos   Int
+  precioServicio    Decimal   @db.Decimal(10, 2)
+  costoAdicionales  Decimal   @default(0.00) @db.Decimal(10, 2)
+  costoTotal        Decimal   @db.Decimal(10, 2)
+
+  observaciones     String?   @db.VarChar(500)
+  motivoCancelacion String?   @db.VarChar(255)
+
+  creadoEn          DateTime  @default(now())
+  actualizadoEn     DateTime  @updatedAt
+
+  cliente           Usuario   @relation("CitasCliente", fields: [clienteId], references: [id])
+  empleado          Empleado  @relation(fields: [empleadoId], references: [id])
+  servicio          Servicio  @relation(fields: [servicioId], references: [id])
+  estadoCita        EstadoCita @relation(fields: [estadoCitaId], references: [id])
+  creadoPor         Usuario   @relation("CitasCreadas", fields: [creadoPorUsuarioId], references: [id])
+
+  adicionales       ServicioAdicional[] @relation("CitaAdicionales")
+
+  @@index([clienteId])
+  @@index([empleadoId])
+  @@index([servicioId])
+  @@index([estadoCitaId])
+  @@index([fecha])
+  @@index([empleadoId, fecha, horaInicio])
+  @@map("citas")
+}
