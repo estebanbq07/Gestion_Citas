@@ -1,5 +1,5 @@
 import { AppLayout } from '@/components/layout/AppLayout'
-import { AppRouter } from '@/routes/AppRouter'
+import { AppRouter } from '@/AppRouter'
 
 function App() {
   return (

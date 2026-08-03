@@ -1,4 +1,5 @@
 import { cn } from '@/lib/utils'
+import { Label } from '@/components/ui/label'
 
 export function FormField({
   label,
@@ -10,9 +11,9 @@ export function FormField({
 }) {
   return (
     <div className={cn('grid gap-2', className)}>
-      <label className="text-sm font-medium" htmlFor={htmlFor}>
+      <Label htmlFor={htmlFor}>
         {label}
-      </label>
+      </Label>
       {children}
       {description && !error ? (
         <p className="text-xs text-muted-foreground">{description}</p>
