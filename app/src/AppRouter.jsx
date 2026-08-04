@@ -15,6 +15,7 @@ import { RegisterPage } from '@/pages/RegisterPage'
 import { RestrictionsPage } from '@/pages/RestrictionsPage'
 import { SchedulesPage } from '@/pages/SchedulesPage'
 import { ServicesPage } from '@/pages/ServicesPage'
+import { ServiceDetailPage } from '@/pages/ServiceDetailPage'
 
 export function AppRouter() {
   return (
@@ -35,6 +36,14 @@ export function AppRouter() {
         element={
           <RoleRoute allowedRoles={ROUTE_PERMISSIONS['/servicios']}>
             <ServicesPage />
+          </RoleRoute>
+        }
+      />
+      <Route
+        path="/servicios/:id"
+        element={
+          <RoleRoute allowedRoles={ROUTE_PERMISSIONS['/servicios']}>
+            <ServiceDetailPage />
           </RoleRoute>
         }
       />
