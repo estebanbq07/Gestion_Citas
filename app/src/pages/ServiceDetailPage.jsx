@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
-import { ArrowLeft } from 'lucide-react'
-import { Link, useParams } from 'react-router-dom'
+import { ArrowLeft, CircleCheck } from 'lucide-react'
+import { Link, useLocation, useNavigate, useParams } from 'react-router-dom'
 
 import { PageHeader } from '@/components/common/PageHeader'
 import { ServiceDetail } from '@/components/data-display/ServiceDetail'
@@ -8,16 +8,26 @@ import { EmptyState } from '@/components/feedback/EmptyState'
 import { ErrorState } from '@/components/feedback/ErrorState'
 import { LoadingState } from '@/components/feedback/LoadingState'
 import { Button } from '@/components/ui/button'
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
 import { getErrorMessage } from '@/lib/getErrorMessage'
 import { getServiceById } from '@/services/servicesService'
 
 export function ServiceDetailPage() {
   const { id } = useParams()
+  const location = useLocation()
+  const navigate = useNavigate()
   const [service, setService] = useState(null)
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState('')
   const [isUnavailable, setIsUnavailable] = useState(false)
   const [retryCount, setRetryCount] = useState(0)
+  const successMessage = location.state?.successMessage
+
+  useEffect(() => {
+    if (typeof successMessage === 'string' && successMessage.trim()) {
+      navigate(location.pathname, { replace: true, state: null })
+    }
+  }, [location.pathname, navigate, successMessage])
 
   useEffect(() => {
     let isActive = true
@@ -138,6 +148,13 @@ export function ServiceDetailPage() {
           </Button>
         }
       />
+      {typeof successMessage === 'string' && successMessage.trim() ? (
+        <Alert>
+          <CircleCheck aria-hidden="true" />
+          <AlertTitle>Servicio creado</AlertTitle>
+          <AlertDescription>{successMessage}</AlertDescription>
+        </Alert>
+      ) : null}
       <ServiceDetail service={service} />
     </section>
   )

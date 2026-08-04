@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { Search } from 'lucide-react'
-import { useNavigate } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 
 import { PageHeader } from '@/components/common/PageHeader'
 import { ServiceList } from '@/components/data-display/ServiceList'
@@ -11,11 +11,12 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { useAuth } from '@/context/useAuth'
 import { getErrorMessage } from '@/lib/getErrorMessage'
+import { ROLES } from '@/lib/permissions'
 import { filterServices, sortServices } from '@/lib/serviceUtils'
 import { getServices } from '@/services/servicesService'
 
 export function ServicesPage() {
-  const { isAuthenticated } = useAuth()
+  const { isAuthenticated, role } = useAuth()
   const navigate = useNavigate()
   const [services, setServices] = useState([])
   const [isLoading, setIsLoading] = useState(true)
@@ -103,6 +104,13 @@ export function ServicesPage() {
       <PageHeader
         title="Servicios"
         description="Consulta los servicios disponibles y su información general."
+        actions={
+          role?.nombre === ROLES.ADMIN ? (
+            <Button asChild>
+              <Link to="/servicios/nuevo">Nuevo servicio</Link>
+            </Button>
+          ) : null
+        }
       />
 
       {services.length ? (

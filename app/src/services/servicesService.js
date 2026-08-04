@@ -1,4 +1,4 @@
-import { get } from '@/services/apiClient'
+import { get, post } from '@/services/apiClient'
 
 function createInvalidIdError() {
   const error = new Error('El identificador del servicio no es válido.')
@@ -19,4 +19,8 @@ export function getServiceById(id, options = {}) {
   }
 
   return get(`/servicios/${encodeURIComponent(normalizedId)}`, options)
+}
+
+export function createService(serviceData, token) {
+  return post('/servicios', serviceData, { token })
 }
