@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { Link, Navigate, useLocation, useNavigate } from 'react-router-dom'
-import { CircleAlert } from 'lucide-react'
+import { CircleAlert, CircleCheck } from 'lucide-react'
 
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
 import { Button } from '@/components/ui/button'
@@ -154,6 +154,16 @@ export function LoginPage() {
         </CardHeader>
         <CardContent>
           <form className="grid gap-5" noValidate onSubmit={handleSubmit}>
+            {location.state?.registrationSuccess ? (
+              <Alert>
+                <CircleCheck aria-hidden="true" />
+                <AlertTitle>Registro completado</AlertTitle>
+                <AlertDescription>
+                  Registro completado correctamente. Ya puede iniciar sesión.
+                </AlertDescription>
+              </Alert>
+            ) : null}
+
             {apiError ? (
               <Alert variant="destructive">
                 <CircleAlert aria-hidden="true" />
