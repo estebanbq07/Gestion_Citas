@@ -1,16 +1,16 @@
-import { NavLink } from 'react-router-dom'
+import { NavLink, useNavigate } from 'react-router-dom'
 
-const navigationItems = [
-  { label: 'Inicio', to: '/', end: true },
-  { label: 'Servicios', to: '/servicios' },
-  { label: 'Adicionales', to: '/adicionales' },
-  { label: 'Empleados', to: '/empleados' },
-  { label: 'Horarios', to: '/horarios' },
-  { label: 'Restricciones', to: '/restricciones' },
-  { label: 'Citas', to: '/citas' },
-  { label: 'Agenda', to: '/agenda-diaria' },
+import { Button } from '@/components/ui/button'
+import { useAuth } from '@/context/useAuth'
+import {
+  AUTHENTICATED_NAVIGATION_ITEMS,
+  canAccessRoute,
+} from '@/lib/permissions'
+
+const unauthenticatedItems = Object.freeze([
   { label: 'Iniciar sesión', to: '/login' },
-]
+  { label: 'Registrarse', to: '/registro' },
+])
 
 const getLinkClassName = ({ isActive }) =>
   [
@@ -22,16 +22,61 @@ const getLinkClassName = ({ isActive }) =>
   ].join(' ')
 
 export function Navbar() {
+  const navigate = useNavigate()
+  const { isAuthenticated, logout, role, user } = useAuth()
+  const visibleNavigationItems = AUTHENTICATED_NAVIGATION_ITEMS.filter(
+    ({ to }) => canAccessRoute(to, role?.nombre),
+  )
+  const displayName =
+    typeof user?.nombre === 'string' && user.nombre.trim()
+      ? user.nombre
+      : user?.correo
+
+  function handleLogout() {
+    logout()
+    navigate('/login')
+  }
+
   return (
     <nav
       aria-label="Navegación principal"
-      className="grid w-full grid-cols-2 gap-2 sm:grid-cols-3 md:grid-cols-5 lg:flex lg:w-auto lg:flex-wrap lg:justify-end"
+      className="flex w-full flex-wrap items-center justify-center gap-2 lg:w-auto lg:justify-end"
     >
-      {navigationItems.map(({ label, to, end }) => (
-        <NavLink key={to} to={to} end={end} className={getLinkClassName}>
-          {label}
-        </NavLink>
-      ))}
+      <NavLink to="/" end className={getLinkClassName}>
+        Inicio
+      </NavLink>
+
+      {isAuthenticated ? (
+        <>
+          {visibleNavigationItems.map(({ label, to }) => (
+            <NavLink key={to} to={to} className={getLinkClassName}>
+              {label}
+            </NavLink>
+          ))}
+          <div className="flex w-full items-center justify-center gap-2 border-t pt-2 sm:w-auto sm:border-l sm:border-t-0 sm:pl-3 sm:pt-0">
+            <span
+              className="max-w-48 truncate text-sm font-medium text-foreground"
+              title={displayName}
+            >
+              {displayName}
+            </span>
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={handleLogout}
+            >
+              Cerrar sesión
+            </Button>
+          </div>
+        </>
+      ) : (
+        unauthenticatedItems.map(({ label, to }) => (
+          <NavLink key={to} to={to} className={getLinkClassName}>
+            {label}
+          </NavLink>
+        ))
+      )}
     </nav>
   )
 }

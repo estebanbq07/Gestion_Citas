@@ -1,4 +1,8 @@
 import { Route, Routes } from 'react-router-dom'
+import { ProtectedRoute } from '@/components/common/ProtectedRoute'
+import { RoleRoute } from '@/components/common/RoleRoute'
+import { ROUTE_PERMISSIONS } from '@/lib/permissions'
+import { AccessDeniedPage } from '@/pages/AccessDeniedPage'
 import { AdditionalsPage } from '@/pages/AdditionalsPage'
 import { AppointmentsPage } from '@/pages/AppointmentsPage'
 import { DailyAgendaPage } from '@/pages/DailyAgendaPage'
@@ -18,14 +22,78 @@ export function AppRouter() {
       <Route path="/" element={<HomePage />} />
       <Route path="/login" element={<LoginPage />} />
       <Route path="/registro" element={<RegisterPage />} />
-      <Route path="/perfil" element={<ProfilePage />} />
-      <Route path="/servicios" element={<ServicesPage />} />
-      <Route path="/adicionales" element={<AdditionalsPage />} />
-      <Route path="/empleados" element={<EmployeesPage />} />
-      <Route path="/horarios" element={<SchedulesPage />} />
-      <Route path="/restricciones" element={<RestrictionsPage />} />
-      <Route path="/citas" element={<AppointmentsPage />} />
-      <Route path="/agenda-diaria" element={<DailyAgendaPage />} />
+      <Route
+        path="/perfil"
+        element={
+          <ProtectedRoute>
+            <ProfilePage />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/servicios"
+        element={
+          <RoleRoute allowedRoles={ROUTE_PERMISSIONS['/servicios']}>
+            <ServicesPage />
+          </RoleRoute>
+        }
+      />
+      <Route
+        path="/adicionales"
+        element={
+          <RoleRoute allowedRoles={ROUTE_PERMISSIONS['/adicionales']}>
+            <AdditionalsPage />
+          </RoleRoute>
+        }
+      />
+      <Route
+        path="/empleados"
+        element={
+          <RoleRoute allowedRoles={ROUTE_PERMISSIONS['/empleados']}>
+            <EmployeesPage />
+          </RoleRoute>
+        }
+      />
+      <Route
+        path="/horarios"
+        element={
+          <RoleRoute allowedRoles={ROUTE_PERMISSIONS['/horarios']}>
+            <SchedulesPage />
+          </RoleRoute>
+        }
+      />
+      <Route
+        path="/restricciones"
+        element={
+          <RoleRoute allowedRoles={ROUTE_PERMISSIONS['/restricciones']}>
+            <RestrictionsPage />
+          </RoleRoute>
+        }
+      />
+      <Route
+        path="/citas"
+        element={
+          <RoleRoute allowedRoles={ROUTE_PERMISSIONS['/citas']}>
+            <AppointmentsPage />
+          </RoleRoute>
+        }
+      />
+      <Route
+        path="/agenda-diaria"
+        element={
+          <RoleRoute allowedRoles={ROUTE_PERMISSIONS['/agenda-diaria']}>
+            <DailyAgendaPage />
+          </RoleRoute>
+        }
+      />
+      <Route
+        path="/acceso-denegado"
+        element={
+          <ProtectedRoute>
+            <AccessDeniedPage />
+          </ProtectedRoute>
+        }
+      />
       <Route path="*" element={<NotFoundPage />} />
     </Routes>
   )
