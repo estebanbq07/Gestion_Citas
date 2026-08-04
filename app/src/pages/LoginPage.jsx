@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
+import { Link, Navigate, useLocation, useNavigate } from 'react-router-dom'
 import { CircleAlert } from 'lucide-react'
 
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
@@ -14,8 +14,8 @@ import {
 import { Input } from '@/components/ui/input'
 import { FormActions } from '@/components/forms/FormActions'
 import { FormField } from '@/components/forms/FormField'
+import { useAuth } from '@/context/useAuth'
 import { getErrorMessage } from '@/lib/getErrorMessage'
-import * as authService from '@/services/authService'
 
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
 
@@ -63,8 +63,18 @@ function validateCredentials(credentials) {
   return errors
 }
 
+function getPostLoginPath(from) {
+  if (!from || typeof from.pathname !== 'string' || from.pathname === '/login') {
+    return '/'
+  }
+
+  return `${from.pathname}${from.search ?? ''}${from.hash ?? ''}`
+}
+
 export function LoginPage() {
   const navigate = useNavigate()
+  const location = useLocation()
+  const { isAuthenticated, login } = useAuth()
   const [credentials, setCredentials] = useState({
     correo: '',
     password: '',
@@ -72,6 +82,10 @@ export function LoginPage() {
   const [validationErrors, setValidationErrors] = useState({})
   const [apiError, setApiError] = useState('')
   const [isLoading, setIsLoading] = useState(false)
+
+  if (isAuthenticated && !isLoading) {
+    return <Navigate to="/" replace />
+  }
 
   function handleChange(event) {
     const { name, value } = event.target
@@ -117,18 +131,11 @@ export function LoginPage() {
     setIsLoading(true)
 
     try {
-      const response = await authService.login({
+      await login({
         correo: credentials.correo.trim(),
         password: credentials.password,
       })
-      const token = response?.data?.token
-
-      if (typeof token !== 'string' || !token) {
-        throw new Error('La respuesta del servidor no contiene un token válido.')
-      }
-
-      sessionStorage.setItem('auth_token', token)
-      navigate('/')
+      navigate(getPostLoginPath(location.state?.from), { replace: true })
     } catch (error) {
       setApiError(getErrorMessage(error))
     } finally {
