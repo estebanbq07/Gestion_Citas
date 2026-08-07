@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { ArrowLeft, CircleCheck } from 'lucide-react'
+import { ArrowLeft, CircleCheck, Pencil } from 'lucide-react'
 import { Link, useLocation, useNavigate, useParams } from 'react-router-dom'
 
 import { PageHeader } from '@/components/common/PageHeader'
@@ -9,19 +9,26 @@ import { ErrorState } from '@/components/feedback/ErrorState'
 import { LoadingState } from '@/components/feedback/LoadingState'
 import { Button } from '@/components/ui/button'
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
+import { useAuth } from '@/context/useAuth'
 import { getErrorMessage } from '@/lib/getErrorMessage'
+import { ROLES } from '@/lib/permissions'
 import { getServiceById } from '@/services/servicesService'
 
 export function ServiceDetailPage() {
   const { id } = useParams()
   const location = useLocation()
   const navigate = useNavigate()
+  const { role } = useAuth()
   const [service, setService] = useState(null)
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState('')
   const [isUnavailable, setIsUnavailable] = useState(false)
   const [retryCount, setRetryCount] = useState(0)
-  const successMessage = location.state?.successMessage
+  const [successMessage] = useState(() => {
+    const message = location.state?.successMessage
+
+    return typeof message === 'string' ? message.trim() : ''
+  })
 
   useEffect(() => {
     if (typeof successMessage === 'string' && successMessage.trim()) {
@@ -140,18 +147,30 @@ export function ServiceDetailPage() {
         title="Detalle del servicio"
         description="Consulta la información general y disponibilidad del servicio."
         actions={
-          <Button asChild type="button" variant="outline">
-            <Link to="/servicios">
-              <ArrowLeft aria-hidden="true" />
-              Volver a servicios
-            </Link>
-          </Button>
+          <div className="flex flex-wrap gap-2">
+            {role?.nombre === ROLES.ADMIN ? (
+              <Button asChild type="button">
+                <Link
+                  to={`/servicios/${encodeURIComponent(String(service.id ?? id))}/editar`}
+                >
+                  <Pencil aria-hidden="true" />
+                  Editar servicio
+                </Link>
+              </Button>
+            ) : null}
+            <Button asChild type="button" variant="outline">
+              <Link to="/servicios">
+                <ArrowLeft aria-hidden="true" />
+                Volver a servicios
+              </Link>
+            </Button>
+          </div>
         }
       />
-      {typeof successMessage === 'string' && successMessage.trim() ? (
+      {successMessage ? (
         <Alert>
           <CircleCheck aria-hidden="true" />
-          <AlertTitle>Servicio creado</AlertTitle>
+          <AlertTitle>Operación completada</AlertTitle>
           <AlertDescription>{successMessage}</AlertDescription>
         </Alert>
       ) : null}

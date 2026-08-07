@@ -6,6 +6,7 @@ import { AccessDeniedPage } from '@/pages/AccessDeniedPage'
 import { AdditionalsPage } from '@/pages/AdditionalsPage'
 import { AppointmentsPage } from '@/pages/AppointmentsPage'
 import { DailyAgendaPage } from '@/pages/DailyAgendaPage'
+import { EditServicePage } from '@/pages/EditServicePage'
 import { EmployeesPage } from '@/pages/EmployeesPage'
 import { HomePage } from '@/pages/HomePage'
 import { LoginPage } from '@/pages/LoginPage'
@@ -45,6 +46,16 @@ export function AppRouter() {
         element={
           <RoleRoute allowedRoles={ROUTE_PERMISSIONS['/servicios/nuevo']}>
             <CreateServicePage />
+          </RoleRoute>
+        }
+      />
+      <Route
+        path="/servicios/:id/editar"
+        element={
+          <RoleRoute
+            allowedRoles={ROUTE_PERMISSIONS['/servicios/:id/editar']}
+          >
+            <EditServicePage />
           </RoleRoute>
         }
       />

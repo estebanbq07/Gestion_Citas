@@ -17,6 +17,7 @@ export const ROUTE_PERMISSIONS = Object.freeze({
   '/perfil': ALL_ROLES,
   '/servicios': ALL_ROLES,
   '/servicios/nuevo': ADMIN_ROLES,
+  '/servicios/:id/editar': ADMIN_ROLES,
   '/adicionales': ALL_ROLES,
   '/empleados': ALL_ROLES,
   '/horarios': ALL_ROLES,
