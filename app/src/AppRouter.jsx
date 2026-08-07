@@ -3,6 +3,7 @@ import { ProtectedRoute } from '@/components/common/ProtectedRoute'
 import { RoleRoute } from '@/components/common/RoleRoute'
 import { ROUTE_PERMISSIONS } from '@/lib/permissions'
 import { AccessDeniedPage } from '@/pages/AccessDeniedPage'
+import { AdditionalDetailPage } from '@/pages/AdditionalDetailPage'
 import { AdditionalsPage } from '@/pages/AdditionalsPage'
 import { AppointmentsPage } from '@/pages/AppointmentsPage'
 import { DailyAgendaPage } from '@/pages/DailyAgendaPage'
@@ -72,6 +73,14 @@ export function AppRouter() {
         element={
           <RoleRoute allowedRoles={ROUTE_PERMISSIONS['/adicionales']}>
             <AdditionalsPage />
+          </RoleRoute>
+        }
+      />
+      <Route
+        path="/adicionales/:id"
+        element={
+          <RoleRoute allowedRoles={ROUTE_PERMISSIONS['/adicionales/:id']}>
+            <AdditionalDetailPage />
           </RoleRoute>
         }
       />
