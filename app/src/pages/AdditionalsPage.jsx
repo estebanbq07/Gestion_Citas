@@ -5,8 +5,8 @@ import {
   useRef,
   useState,
 } from 'react'
-import { Search } from 'lucide-react'
-import { useNavigate } from 'react-router-dom'
+import { CircleCheck, Plus, Search } from 'lucide-react'
+import { useLocation, useNavigate } from 'react-router-dom'
 
 import { PageHeader } from '@/components/common/PageHeader'
 import { AdditionalList } from '@/components/data-display/AdditionalList'
@@ -15,11 +15,14 @@ import { ErrorState } from '@/components/feedback/ErrorState'
 import { LoadingState } from '@/components/feedback/LoadingState'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
+import { useAuth } from '@/context/useAuth'
 import {
   filterAdditionals,
   sortAdditionals,
 } from '@/lib/additionalUtils'
 import { getErrorMessage } from '@/lib/getErrorMessage'
+import { ROLES } from '@/lib/permissions'
 import { getAdditionals } from '@/services/additionalsService'
 
 const INVALID_RESPONSE_MESSAGE =
@@ -33,13 +36,26 @@ function getLoadErrorMessage(error) {
 
 export function AdditionalsPage() {
   const navigate = useNavigate()
+  const location = useLocation()
+  const { role } = useAuth()
   const [additionals, setAdditionals] = useState([])
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState('')
   const [searchTerm, setSearchTerm] = useState('')
   const [sortOption, setSortOption] = useState('nameAsc')
   const [retryCount, setRetryCount] = useState(0)
+  const [successMessage] = useState(() => {
+    const message = location.state?.successMessage
+
+    return typeof message === 'string' ? message.trim() : ''
+  })
   const isRequestingRef = useRef(true)
+
+  useEffect(() => {
+    if (successMessage) {
+      navigate(location.pathname, { replace: true, state: null })
+    }
+  }, [location.pathname, navigate, successMessage])
 
   const requestAdditionals = useCallback(async () => {
     const response = await getAdditionals()
@@ -130,7 +146,26 @@ export function AdditionalsPage() {
       <PageHeader
         title="Servicios adicionales"
         description="Consulta los complementos disponibles y su información general."
+        actions={
+          role?.nombre === ROLES.ADMIN ? (
+            <Button
+              type="button"
+              onClick={() => navigate('/adicionales/nuevo')}
+            >
+              <Plus aria-hidden="true" />
+              Nuevo adicional
+            </Button>
+          ) : null
+        }
       />
+
+      {successMessage ? (
+        <Alert>
+          <CircleCheck aria-hidden="true" />
+          <AlertTitle>Operación completada</AlertTitle>
+          <AlertDescription>{successMessage}</AlertDescription>
+        </Alert>
+      ) : null}
 
       {additionals.length ? (
         <div className="grid gap-4 rounded-xl border border-border bg-card p-4 sm:grid-cols-[1fr_auto] sm:items-end">

@@ -9,6 +9,10 @@ export function FormField({
   children,
   className,
 }) {
+  const descriptionId =
+    description && !error && htmlFor ? `${htmlFor}-description` : undefined
+  const errorId = error && htmlFor ? `${htmlFor}-error` : undefined
+
   return (
     <div className={cn('grid gap-2', className)}>
       <Label htmlFor={htmlFor}>
@@ -16,10 +20,12 @@ export function FormField({
       </Label>
       {children}
       {description && !error ? (
-        <p className="text-xs text-muted-foreground">{description}</p>
+        <p id={descriptionId} className="text-xs text-muted-foreground">
+          {description}
+        </p>
       ) : null}
       {error ? (
-        <p className="text-xs text-destructive" role="alert">
+        <p id={errorId} className="text-xs text-destructive" role="alert">
           {error}
         </p>
       ) : null}

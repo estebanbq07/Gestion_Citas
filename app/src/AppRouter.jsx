@@ -5,9 +5,11 @@ import { ROUTE_PERMISSIONS } from '@/lib/permissions'
 import { AccessDeniedPage } from '@/pages/AccessDeniedPage'
 import { AdditionalDetailPage } from '@/pages/AdditionalDetailPage'
 import { AdditionalsPage } from '@/pages/AdditionalsPage'
+import { CreateAdditionalPage } from '@/pages/CreateAdditionalPage'
 import { AppointmentsPage } from '@/pages/AppointmentsPage'
 import { DailyAgendaPage } from '@/pages/DailyAgendaPage'
 import { EditServicePage } from '@/pages/EditServicePage'
+import { EditAdditionalPage } from '@/pages/EditAdditionalPage'
 import { EmployeesPage } from '@/pages/EmployeesPage'
 import { HomePage } from '@/pages/HomePage'
 import { LoginPage } from '@/pages/LoginPage'
@@ -73,6 +75,24 @@ export function AppRouter() {
         element={
           <RoleRoute allowedRoles={ROUTE_PERMISSIONS['/adicionales']}>
             <AdditionalsPage />
+          </RoleRoute>
+        }
+      />
+      <Route
+        path="/adicionales/nuevo"
+        element={
+          <RoleRoute allowedRoles={ROUTE_PERMISSIONS['/adicionales/nuevo']}>
+            <CreateAdditionalPage />
+          </RoleRoute>
+        }
+      />
+      <Route
+        path="/adicionales/:id/editar"
+        element={
+          <RoleRoute
+            allowedRoles={ROUTE_PERMISSIONS['/adicionales/:id/editar']}
+          >
+            <EditAdditionalPage />
           </RoleRoute>
         }
       />

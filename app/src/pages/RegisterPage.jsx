@@ -4,6 +4,7 @@ import { CircleAlert } from 'lucide-react'
 
 import { FormActions } from '@/components/forms/FormActions'
 import { FormField } from '@/components/forms/FormField'
+import { LoadingState } from '@/components/feedback/LoadingState'
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
 import { Button } from '@/components/ui/button'
 import {
@@ -160,11 +161,15 @@ function validateForm(formData) {
 
 export function RegisterPage() {
   const navigate = useNavigate()
-  const { isAuthenticated } = useAuth()
+  const { isAuthenticated, isLoading: isAuthLoading } = useAuth()
   const [formData, setFormData] = useState(INITIAL_FORM_DATA)
   const [fieldErrors, setFieldErrors] = useState({})
   const [apiError, setApiError] = useState('')
   const [isSubmitting, setIsSubmitting] = useState(false)
+
+  if (isAuthLoading) {
+    return <LoadingState message="Verificando sesión..." />
+  }
 
   if (isAuthenticated) {
     return <Navigate to="/" replace />
