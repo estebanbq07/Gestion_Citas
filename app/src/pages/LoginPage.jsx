@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Link, Navigate, useLocation, useNavigate } from 'react-router-dom'
 import { CircleAlert, CircleCheck } from 'lucide-react'
 
@@ -15,9 +15,8 @@ import { Input } from '@/components/ui/input'
 import { FormActions } from '@/components/forms/FormActions'
 import { FormField } from '@/components/forms/FormField'
 import { useAuth } from '@/context/useAuth'
+import { EMAIL_PATTERN } from '@/lib/authValidation'
 import { getErrorMessage } from '@/lib/getErrorMessage'
-
-const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
 
 function validateField(name, value) {
   if (name === 'correo') {
@@ -75,6 +74,10 @@ export function LoginPage() {
   const navigate = useNavigate()
   const location = useLocation()
   const { isAuthenticated, login } = useAuth()
+  const [registrationSuccess] = useState(
+    () => location.state?.registrationSuccess === true,
+  )
+  const [postLoginFrom] = useState(() => location.state?.from ?? null)
   const [credentials, setCredentials] = useState({
     correo: '',
     password: '',
@@ -82,6 +85,17 @@ export function LoginPage() {
   const [validationErrors, setValidationErrors] = useState({})
   const [apiError, setApiError] = useState('')
   const [isLoading, setIsLoading] = useState(false)
+
+  useEffect(() => {
+    if (!registrationSuccess) {
+      return
+    }
+
+    navigate(location.pathname, {
+      replace: true,
+      state: postLoginFrom ? { from: postLoginFrom } : null,
+    })
+  }, [location.pathname, navigate, postLoginFrom, registrationSuccess])
 
   if (isAuthenticated && !isLoading) {
     return <Navigate to="/" replace />
@@ -94,6 +108,7 @@ export function LoginPage() {
       ...currentCredentials,
       [name]: value,
     }))
+    setApiError('')
 
     setValidationErrors((currentErrors) => {
       if (!currentErrors[name]) {
@@ -135,7 +150,7 @@ export function LoginPage() {
         correo: credentials.correo.trim(),
         password: credentials.password,
       })
-      navigate(getPostLoginPath(location.state?.from), { replace: true })
+      navigate(getPostLoginPath(postLoginFrom), { replace: true })
     } catch (error) {
       setApiError(getErrorMessage(error))
     } finally {
@@ -154,7 +169,7 @@ export function LoginPage() {
         </CardHeader>
         <CardContent>
           <form className="grid gap-5" noValidate onSubmit={handleSubmit}>
-            {location.state?.registrationSuccess ? (
+            {registrationSuccess ? (
               <Alert>
                 <CircleCheck aria-hidden="true" />
                 <AlertTitle>Registro completado</AlertTitle>
@@ -189,6 +204,7 @@ export function LoginPage() {
                 name="correo"
                 type="email"
                 autoComplete="email"
+                maxLength={150}
                 value={credentials.correo}
                 onChange={handleChange}
                 aria-invalid={Boolean(validationErrors.correo)}
@@ -214,6 +230,7 @@ export function LoginPage() {
                 name="password"
                 type="password"
                 autoComplete="current-password"
+                maxLength={100}
                 value={credentials.password}
                 onChange={handleChange}
                 aria-invalid={Boolean(validationErrors.password)}

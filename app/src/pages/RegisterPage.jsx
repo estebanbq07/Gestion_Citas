@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { Link, Navigate, useNavigate } from 'react-router-dom'
-import { CircleAlert, CircleCheck } from 'lucide-react'
+import { CircleAlert } from 'lucide-react'
 
 import { FormActions } from '@/components/forms/FormActions'
 import { FormField } from '@/components/forms/FormField'
@@ -15,10 +15,11 @@ import {
 } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { useAuth } from '@/context/useAuth'
+import { mapApiValidationErrors } from '@/lib/apiValidationUtils'
+import { EMAIL_PATTERN } from '@/lib/authValidation'
 import { getErrorMessage } from '@/lib/getErrorMessage'
 import * as authService from '@/services/authService'
 
-const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
 const PHONE_PATTERN = /^[0-9+\-()\s]+$/
 
 const INITIAL_FORM_DATA = Object.freeze({
@@ -28,7 +29,7 @@ const INITIAL_FORM_DATA = Object.freeze({
   correo: '',
   telefono: '',
   password: '',
-  confirmarPassword: '',
+  confirmPassword: '',
 })
 
 const FORM_FIELDS = Object.freeze(Object.keys(INITIAL_FORM_DATA))
@@ -130,7 +131,7 @@ function validateField(name, value, formData) {
     }
   }
 
-  if (name === 'confirmarPassword') {
+  if (name === 'confirmPassword') {
     if (!value) {
       return 'La confirmación de contraseña es obligatoria.'
     }
@@ -157,39 +158,15 @@ function validateForm(formData) {
   return errors
 }
 
-function getApiFieldErrors(error) {
-  const validationErrors = error?.data?.validationErrors
-
-  if (!Array.isArray(validationErrors)) {
-    return {}
-  }
-
-  return validationErrors.reduce((errors, validationError) => {
-    const field = validationError?.field?.split('.')[0]
-    const message = validationError?.message
-
-    if (
-      Object.hasOwn(INITIAL_FORM_DATA, field) &&
-      typeof message === 'string' &&
-      message.trim()
-    ) {
-      errors[field] = message
-    }
-
-    return errors
-  }, {})
-}
-
 export function RegisterPage() {
   const navigate = useNavigate()
   const { isAuthenticated } = useAuth()
   const [formData, setFormData] = useState(INITIAL_FORM_DATA)
   const [fieldErrors, setFieldErrors] = useState({})
   const [apiError, setApiError] = useState('')
-  const [successMessage, setSuccessMessage] = useState('')
   const [isSubmitting, setIsSubmitting] = useState(false)
 
-  if (isAuthenticated && !isSubmitting) {
+  if (isAuthenticated) {
     return <Navigate to="/" replace />
   }
 
@@ -199,12 +176,11 @@ export function RegisterPage() {
 
     setFormData(nextFormData)
     setApiError('')
-    setSuccessMessage('')
     setFieldErrors((currentErrors) => {
       const fieldsToUpdate = [name]
 
-      if (name === 'password' && currentErrors.confirmarPassword) {
-        fieldsToUpdate.push('confirmarPassword')
+      if (name === 'password' && currentErrors.confirmPassword) {
+        fieldsToUpdate.push('confirmPassword')
       }
 
       if (!fieldsToUpdate.some((field) => currentErrors[field])) {
@@ -250,11 +226,10 @@ export function RegisterPage() {
     }
 
     setApiError('')
-    setSuccessMessage('')
     setIsSubmitting(true)
 
     try {
-      const response = await authService.registerClient({
+      await authService.registerClient({
         nombre: formData.nombre.trim(),
         primerApellido: formData.primerApellido.trim(),
         segundoApellido: formData.segundoApellido.trim() || null,
@@ -262,16 +237,19 @@ export function RegisterPage() {
         telefono: formData.telefono.trim() || null,
         password: formData.password,
       })
-      const message = response?.message || 'Cliente registrado correctamente.'
-
-      setSuccessMessage(message)
       navigate('/login', {
         replace: true,
         state: { registrationSuccess: true },
       })
     } catch (error) {
-      setFieldErrors(getApiFieldErrors(error))
-      setApiError(getErrorMessage(error))
+      const { fieldErrors: apiFieldErrors, generalErrors } =
+        mapApiValidationErrors(error, FORM_FIELDS)
+      const errorMessages = [getErrorMessage(error), ...generalErrors].filter(
+        (message, index, messages) => messages.indexOf(message) === index,
+      )
+
+      setFieldErrors(apiFieldErrors)
+      setApiError(errorMessages.join(' '))
     } finally {
       setIsSubmitting(false)
     }
@@ -296,14 +274,6 @@ export function RegisterPage() {
               </Alert>
             ) : null}
 
-            {successMessage ? (
-              <Alert>
-                <CircleCheck aria-hidden="true" />
-                <AlertTitle>Registro completado</AlertTitle>
-                <AlertDescription>{successMessage}</AlertDescription>
-              </Alert>
-            ) : null}
-
             <div className="grid gap-5 sm:grid-cols-2">
               <FormField
                 htmlFor="nombre"
@@ -321,6 +291,7 @@ export function RegisterPage() {
                   id="nombre"
                   name="nombre"
                   autoComplete="given-name"
+                  minLength={2}
                   maxLength={100}
                   value={formData.nombre}
                   onChange={handleChange}
@@ -346,6 +317,7 @@ export function RegisterPage() {
                   id="primerApellido"
                   name="primerApellido"
                   autoComplete="family-name"
+                  minLength={2}
                   maxLength={100}
                   value={formData.primerApellido}
                   onChange={handleChange}
@@ -364,6 +336,7 @@ export function RegisterPage() {
                   id="segundoApellido"
                   name="segundoApellido"
                   autoComplete="additional-name"
+                  minLength={2}
                   maxLength={100}
                   value={formData.segundoApellido}
                   onChange={handleChange}
@@ -382,6 +355,7 @@ export function RegisterPage() {
                   name="telefono"
                   type="tel"
                   autoComplete="tel"
+                  minLength={8}
                   maxLength={25}
                   value={formData.telefono}
                   onChange={handleChange}
@@ -435,6 +409,7 @@ export function RegisterPage() {
                   name="password"
                   type="password"
                   autoComplete="new-password"
+                  minLength={8}
                   maxLength={100}
                   value={formData.password}
                   onChange={handleChange}
@@ -445,7 +420,7 @@ export function RegisterPage() {
               </FormField>
 
               <FormField
-                htmlFor="confirmarPassword"
+                htmlFor="confirmPassword"
                 label={
                   <>
                     Confirmar contraseña
@@ -454,17 +429,18 @@ export function RegisterPage() {
                     </span>
                   </>
                 }
-                error={fieldErrors.confirmarPassword}
+                error={fieldErrors.confirmPassword}
               >
                 <Input
-                  id="confirmarPassword"
-                  name="confirmarPassword"
+                  id="confirmPassword"
+                  name="confirmPassword"
                   type="password"
                   autoComplete="new-password"
+                  minLength={8}
                   maxLength={100}
-                  value={formData.confirmarPassword}
+                  value={formData.confirmPassword}
                   onChange={handleChange}
-                  aria-invalid={Boolean(fieldErrors.confirmarPassword)}
+                  aria-invalid={Boolean(fieldErrors.confirmPassword)}
                   disabled={isSubmitting}
                   required
                 />

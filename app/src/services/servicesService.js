@@ -1,4 +1,4 @@
-import { get, post, put } from '@/services/apiClient'
+import { get, patch, post, put } from '@/services/apiClient'
 
 function createInvalidIdError() {
   const error = new Error('El identificador del servicio no es válido.')
@@ -35,6 +35,26 @@ export function updateService(id, serviceData, token) {
   return put(
     `/servicios/${encodeURIComponent(normalizedId)}`,
     serviceData,
+    { token },
+  )
+}
+
+export function changeServiceStatus(id, status, token) {
+  const normalizedId = String(id ?? '').trim()
+
+  if (!/^[1-9]\d*$/.test(normalizedId)) {
+    throw createInvalidIdError()
+  }
+
+  if (typeof status !== 'boolean') {
+    const error = new Error('El estado del servicio no es válido.')
+    error.code = 'INVALID_SERVICE_STATUS'
+    throw error
+  }
+
+  return patch(
+    `/servicios/${encodeURIComponent(normalizedId)}/estado`,
+    { activo: status },
     { token },
   )
 }
