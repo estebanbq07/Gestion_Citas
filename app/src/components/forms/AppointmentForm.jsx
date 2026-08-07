@@ -3,6 +3,7 @@ import {
   CheckCircle2,
   CircleAlert,
   Clock3,
+  Info,
   LoaderCircle,
   WalletCards,
 } from 'lucide-react'
@@ -82,9 +83,12 @@ function AvailabilityMessage({ status, message }) {
 }
 
 export function AppointmentForm({
+  mode = 'create',
   formData,
   fieldErrors,
   apiError,
+  apiErrorTitle,
+  infoMessage = '',
   clients,
   services,
   employees,
@@ -106,8 +110,21 @@ export function AppointmentForm({
   onAdditionalsChange,
   onSubmit,
   onCancel,
+  submitText,
+  submittingText,
 }) {
   const controlsDisabled = isSubmitting
+  const isEditMode = mode === 'edit'
+  const resolvedApiErrorTitle =
+    apiErrorTitle ||
+    (isEditMode
+      ? 'No fue posible actualizar la cita'
+      : 'No fue posible crear la cita')
+  const resolvedSubmitText =
+    submitText || (isEditMode ? 'Guardar cambios' : 'Crear cita')
+  const resolvedSubmittingText =
+    submittingText ||
+    (isEditMode ? 'Guardando cambios...' : 'Creando cita...')
   const selectedService = services.find(
     (service) => Number(service?.id) === Number(formData.servicioId),
   )
@@ -116,7 +133,12 @@ export function AppointmentForm({
   const additionalCostText = formatServicePrice(estimate.additionalCost)
 
   return (
-    <form className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_20rem]" noValidate onSubmit={onSubmit}>
+    <form
+      className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_20rem]"
+      noValidate
+      onSubmit={onSubmit}
+      aria-busy={isSubmitting}
+    >
       <Card>
         <CardHeader>
           <CardTitle aria-level={2} role="heading">
@@ -130,8 +152,16 @@ export function AppointmentForm({
           {apiError ? (
             <Alert variant="destructive">
               <CircleAlert aria-hidden="true" />
-              <AlertTitle>No fue posible crear la cita</AlertTitle>
+              <AlertTitle>{resolvedApiErrorTitle}</AlertTitle>
               <AlertDescription>{apiError}</AlertDescription>
+            </Alert>
+          ) : null}
+
+          {infoMessage ? (
+            <Alert>
+              <Info aria-hidden="true" />
+              <AlertTitle>Sin cambios pendientes</AlertTitle>
+              <AlertDescription>{infoMessage}</AlertDescription>
             </Alert>
           ) : null}
 
@@ -162,8 +192,17 @@ export function AppointmentForm({
                     {isLoadingClients ? 'Cargando clientes...' : 'Selecciona un cliente'}
                   </option>
                   {clients.map((client) => (
-                    <option key={client.id} value={client.id}>
+                    <option
+                      key={client.id}
+                      value={client.id}
+                      disabled={
+                        client?.activo !== true ||
+                        client?.rol?.nombre !== 'Cliente' ||
+                        client?.rol?.activo !== true
+                      }
+                    >
                       {getUserFullName(client) || client.correo || 'Cliente'}
+                      {client?.activo !== true ? ' · No disponible' : ''}
                     </option>
                   ))}
                 </select>
@@ -171,7 +210,7 @@ export function AppointmentForm({
             ) : (
               <div className="rounded-lg border border-border bg-muted/40 p-4">
                 <p className="text-xs font-medium text-muted-foreground">
-                  La cita se registrará para
+                  {isEditMode ? 'Cliente de la cita' : 'La cita se registrará para'}
                 </p>
                 <p className="mt-1 text-sm font-semibold">
                   {currentClientName || 'Usuario autenticado'}
@@ -207,9 +246,14 @@ export function AppointmentForm({
                     {isLoadingServices ? 'Cargando servicios...' : 'Selecciona un servicio'}
                   </option>
                   {services.map((service) => (
-                    <option key={service.id} value={service.id}>
+                    <option
+                      key={service.id}
+                      value={service.id}
+                      disabled={service?.activo !== true}
+                    >
                       {service.nombre} · {formatServicePrice(service.precioBase)} ·{' '}
                       {formatServiceDuration(service.duracionMinutos)}
+                      {service?.activo !== true ? ' · No disponible' : ''}
                     </option>
                   ))}
                 </select>
@@ -256,10 +300,21 @@ export function AppointmentForm({
                         : 'Selecciona un empleado'}
                   </option>
                   {employees.map((employee) => (
-                    <option key={employee.id} value={employee.id}>
+                    <option
+                      key={employee.id}
+                      value={employee.id}
+                      disabled={
+                        employee?.activo !== true ||
+                        employee?.usuario?.activo !== true
+                      }
+                    >
                       {getEmployeeFullName(employee)}
                       {employee.especialidad?.nombre
                         ? ` · ${employee.especialidad.nombre}`
+                        : ''}
+                      {employee?.activo !== true ||
+                      employee?.usuario?.activo !== true
+                        ? ' · No disponible'
                         : ''}
                     </option>
                   ))}
@@ -381,10 +436,10 @@ export function AppointmentForm({
             </Button>
             <Button type="submit" disabled={isSubmitting || isPreparing}>
               {isSubmitting
-                ? 'Creando cita...'
+                ? resolvedSubmittingText
                 : isPreparing
                   ? 'Cargando opciones...'
-                  : 'Crear cita'}
+                  : resolvedSubmitText}
             </Button>
           </FormActions>
         </CardContent>

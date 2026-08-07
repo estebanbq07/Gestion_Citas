@@ -9,6 +9,7 @@ import { CreateAdditionalPage } from '@/pages/CreateAdditionalPage'
 import { AppointmentsPage } from '@/pages/AppointmentsPage'
 import { AppointmentDetailPage } from '@/pages/AppointmentDetailPage'
 import { CreateAppointmentPage } from '@/pages/CreateAppointmentPage'
+import { EditAppointmentPage } from '@/pages/EditAppointmentPage'
 import { DailyAgendaPage } from '@/pages/DailyAgendaPage'
 import { EditServicePage } from '@/pages/EditServicePage'
 import { EditAdditionalPage } from '@/pages/EditAdditionalPage'
@@ -190,6 +191,14 @@ export function AppRouter() {
         element={
           <RoleRoute allowedRoles={ROUTE_PERMISSIONS['/citas/nueva']}>
             <CreateAppointmentPage />
+          </RoleRoute>
+        }
+      />
+      <Route
+        path="/citas/:id/editar"
+        element={
+          <RoleRoute allowedRoles={ROUTE_PERMISSIONS['/citas/:id/editar']}>
+            <EditAppointmentPage />
           </RoleRoute>
         }
       />

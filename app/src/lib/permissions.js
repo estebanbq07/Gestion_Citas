@@ -33,6 +33,7 @@ export const ROUTE_PERMISSIONS = Object.freeze({
   '/citas': ALL_ROLES,
   '/citas/nueva': ALL_ROLES,
   '/citas/:id': ALL_ROLES,
+  '/citas/:id/editar': ALL_ROLES,
   '/agenda-diaria': ADMIN_ROLES,
   '/acceso-denegado': ALL_ROLES,
 })

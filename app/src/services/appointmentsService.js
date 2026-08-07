@@ -1,5 +1,5 @@
 import { isValidAppointmentId } from '@/lib/appointmentUtils'
-import { get, post } from '@/services/apiClient'
+import { get, patch, post, put } from '@/services/apiClient'
 
 function createInvalidIdError(resourceName, code) {
   const error = new Error(`El identificador ${resourceName} no es válido.`)
@@ -104,4 +104,51 @@ export function getAvailability(availabilityData, token) {
 
 export function createAppointment(appointmentData, token) {
   return post('/citas', appointmentData, { token })
+}
+
+export function updateAppointment(id, appointmentData, token) {
+  const normalizedId = normalizeRequiredId(
+    id,
+    'de la cita',
+    'INVALID_APPOINTMENT_ID',
+  )
+
+  return put(
+    `/citas/${encodeURIComponent(normalizedId)}`,
+    appointmentData,
+    { token },
+  )
+}
+
+export function cancelAppointment(id, cancellationData, token) {
+  const normalizedId = normalizeRequiredId(
+    id,
+    'de la cita',
+    'INVALID_APPOINTMENT_ID',
+  )
+
+  return patch(
+    `/citas/${encodeURIComponent(normalizedId)}/cancelar`,
+    { motivoCancelacion: cancellationData?.motivoCancelacion },
+    { token },
+  )
+}
+
+export function changeAppointmentStatus(id, statusId, token) {
+  const normalizedId = normalizeRequiredId(
+    id,
+    'de la cita',
+    'INVALID_APPOINTMENT_ID',
+  )
+  const normalizedStatusId = normalizeRequiredId(
+    statusId,
+    'del estado de la cita',
+    'INVALID_APPOINTMENT_STATUS_ID',
+  )
+
+  return patch(
+    `/citas/${encodeURIComponent(normalizedId)}/estado`,
+    { estadoCitaId: Number(normalizedStatusId) },
+    { token },
+  )
 }

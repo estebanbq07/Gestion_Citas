@@ -1,5 +1,5 @@
 import { mapApiValidationErrors } from '@/lib/apiValidationUtils'
-import { getApiDateKey } from '@/lib/dateTimeUtils'
+import { getApiDateKey, getApiTimeKey } from '@/lib/dateTimeUtils'
 import { getErrorMessage } from '@/lib/getErrorMessage'
 
 const API_FIELDS = [
@@ -56,8 +56,52 @@ function isValidMoney(value, { allowZero = false } = {}) {
   )
 }
 
-export function validateAppointmentForm(formData, context) {
+function normalizeFormId(value) {
+  const id = getPositiveInteger(value)
+
+  return id === null ? '' : String(id)
+}
+
+function normalizeAdditionalIds(values) {
+  return [
+    ...new Set(
+      (Array.isArray(values) ? values : [])
+        .map(getPositiveInteger)
+        .filter((id) => id !== null),
+    ),
+  ].sort((leftId, rightId) => leftId - rightId)
+}
+
+function normalizeOptionalText(value) {
+  if (typeof value !== 'string') {
+    return null
+  }
+
+  return value.trim() || null
+}
+
+function normalizeComparableFormData(formData) {
+  return {
+    clienteId: getPositiveInteger(formData?.clienteId),
+    servicioId: getPositiveInteger(formData?.servicioId),
+    empleadoId: getPositiveInteger(formData?.empleadoId),
+    adicionalIds: normalizeAdditionalIds(formData?.adicionalIds),
+    fecha: getApiDateKey(formData?.fecha) || '',
+    horaInicio: getApiTimeKey(formData?.horaInicio) || '',
+    observaciones: normalizeOptionalText(formData?.observaciones),
+  }
+}
+
+function haveSameIds(leftIds, rightIds) {
+  return (
+    leftIds.length === rightIds.length &&
+    leftIds.every((id, index) => id === rightIds[index])
+  )
+}
+
+export function validateAppointmentForm(formData, context = {}) {
   const errors = {}
+  const mode = context.mode === 'edit' ? 'edit' : 'create'
   const clientId = getPositiveInteger(formData.clienteId)
   const serviceId = getPositiveInteger(formData.servicioId)
   const employeeId = getPositiveInteger(formData.empleadoId)
@@ -178,9 +222,9 @@ export function validateAppointmentForm(formData, context) {
       'Las observaciones no pueden superar 500 caracteres.'
   }
 
-  if (userId === null) {
+  if ((mode === 'create' || !context.showClientSelector) && userId === null) {
     errors._form = 'No fue posible identificar al usuario autenticado.'
-  } else if (initialStatusId === null) {
+  } else if (mode === 'create' && initialStatusId === null) {
     errors._form =
       'No está disponible el estado inicial Pendiente para registrar la cita.'
   } else if (
@@ -218,6 +262,67 @@ export function buildAppointmentData(formData, context) {
     observaciones: formData.observaciones.trim() || null,
     adicionalIds: formData.adicionalIds.map(Number),
   }
+}
+
+export function buildAppointmentUpdateData(formData, context) {
+  return {
+    clienteId: Number(formData.clienteId),
+    empleadoId: Number(formData.empleadoId),
+    servicioId: Number(formData.servicioId),
+    fecha: getApiDateKey(formData.fecha) || formData.fecha,
+    horaInicio: getApiTimeKey(formData.horaInicio) || formData.horaInicio,
+    horaFin:
+      getApiTimeKey(context.estimate.endTime) || context.estimate.endTime,
+    duracionMinutos: Number(context.estimate.durationMinutes),
+    precioServicio: Number(context.estimate.servicePrice),
+    costoAdicionales: Number(context.estimate.additionalCost),
+    costoTotal: Number(context.estimate.total),
+    observaciones: normalizeOptionalText(formData.observaciones),
+    adicionalIds: formData.adicionalIds.map(Number),
+  }
+}
+
+export function getAppointmentFormData(appointment) {
+  const additionalIds = Array.isArray(appointment?.adicionales)
+    ? appointment.adicionales.map((additional) => additional?.id)
+    : []
+
+  return {
+    clienteId: normalizeFormId(appointment?.clienteId),
+    servicioId: normalizeFormId(appointment?.servicioId),
+    empleadoId: normalizeFormId(appointment?.empleadoId),
+    adicionalIds: normalizeAdditionalIds(additionalIds),
+    fecha: getApiDateKey(appointment?.fecha) || '',
+    horaInicio: getApiTimeKey(appointment?.horaInicio) || '',
+    observaciones:
+      typeof appointment?.observaciones === 'string'
+        ? appointment.observaciones
+        : '',
+  }
+}
+
+export function hasAppointmentFormChanges(originalFormData, currentFormData) {
+  if (!originalFormData) {
+    return false
+  }
+
+  const originalData = normalizeComparableFormData(originalFormData)
+  const currentData = normalizeComparableFormData(currentFormData)
+  const scalarFields = [
+    'clienteId',
+    'servicioId',
+    'empleadoId',
+    'fecha',
+    'horaInicio',
+    'observaciones',
+  ]
+
+  return (
+    scalarFields.some(
+      (field) => originalData[field] !== currentData[field],
+    ) ||
+    !haveSameIds(originalData.adicionalIds, currentData.adicionalIds)
+  )
 }
 
 export function getAppointmentApiErrorState(error) {

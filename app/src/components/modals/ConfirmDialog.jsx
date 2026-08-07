@@ -7,12 +7,15 @@ export function ConfirmDialog({
   open,
   title,
   description,
+  children,
   confirmText,
   cancelText,
   onConfirm,
   onCancel,
   isLoading,
   confirmVariant = 'default',
+  confirmDisabled = false,
+  loadingText,
 }) {
   const titleId = useId()
   const descriptionId = useId()
@@ -73,13 +76,14 @@ export function ConfirmDialog({
           </p>
         </div>
 
+        {children}
+
         <div className="flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
           <Button
             type="button"
             variant="outline"
             onClick={onCancel}
             disabled={isLoading}
-            autoFocus
           >
             {cancelText}
           </Button>
@@ -87,13 +91,13 @@ export function ConfirmDialog({
             type="button"
             variant={confirmVariant}
             onClick={onConfirm}
-            disabled={isLoading}
+            disabled={isLoading || confirmDisabled}
             aria-busy={isLoading}
           >
             {isLoading ? (
               <LoaderCircle aria-hidden="true" className="animate-spin" />
             ) : null}
-            {confirmText}
+            {isLoading ? loadingText || confirmText : confirmText}
           </Button>
         </div>
       </div>

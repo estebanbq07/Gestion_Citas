@@ -9,6 +9,7 @@ import {
   formatServiceDuration,
   formatServicePrice,
 } from '@/lib/serviceUtils'
+import { ROLES } from '@/lib/permissions'
 
 export const APPOINTMENT_STATUS_NAMES = Object.freeze({
   PENDING: 'Pendiente',
@@ -19,6 +20,10 @@ export const APPOINTMENT_STATUS_NAMES = Object.freeze({
 })
 
 export const INITIAL_APPOINTMENT_STATUS = APPOINTMENT_STATUS_NAMES.PENDING
+
+const REAL_APPOINTMENT_STATUS_NAMES = new Set(
+  Object.values(APPOINTMENT_STATUS_NAMES),
+)
 
 export const APPOINTMENT_SORT_OPTIONS = Object.freeze({
   DATE_DESC: 'dateDesc',
@@ -95,8 +100,104 @@ function getRelatedUser(relation) {
     : relation
 }
 
+function getStatusName(status) {
+  return getTextValue(
+    typeof status === 'string' ? status : status?.nombre,
+  )
+}
+
+function getAppointmentRelationId(appointment, idField, relationField) {
+  return getPositiveInteger(
+    appointment?.[idField] ?? appointment?.[relationField]?.id,
+  )
+}
+
 export function isValidAppointmentId(value) {
   return getPositiveInteger(value) !== null
+}
+
+export function isAppointmentInRoleScope(appointment, roleName, user) {
+  if (!appointment || typeof appointment !== 'object') {
+    return false
+  }
+
+  if (roleName === ROLES.ADMIN) {
+    return true
+  }
+
+  if (roleName === ROLES.CLIENT) {
+    const clientId = getAppointmentRelationId(
+      appointment,
+      'clienteId',
+      'cliente',
+    )
+    const currentUserId = getPositiveInteger(user?.id)
+
+    return clientId !== null && clientId === currentUserId
+  }
+
+  if (roleName === ROLES.EMPLOYEE) {
+    const employeeId = getAppointmentRelationId(
+      appointment,
+      'empleadoId',
+      'empleado',
+    )
+    const currentEmployeeId = getPositiveInteger(user?.empleado?.id)
+
+    return employeeId !== null && employeeId === currentEmployeeId
+  }
+
+  return false
+}
+
+export function canTransitionAppointment(currentStatus, targetStatus) {
+  const currentStatusName = getStatusName(currentStatus)
+  const targetStatusName = getStatusName(targetStatus)
+  const hasInactiveTarget =
+    targetStatus !== null &&
+    typeof targetStatus === 'object' &&
+    targetStatus.activo !== true
+
+  if (
+    !REAL_APPOINTMENT_STATUS_NAMES.has(currentStatusName) ||
+    !REAL_APPOINTMENT_STATUS_NAMES.has(targetStatusName) ||
+    currentStatusName === targetStatusName ||
+    hasInactiveTarget
+  ) {
+    return false
+  }
+
+  return !(
+    currentStatusName === APPOINTMENT_STATUS_NAMES.CANCELED &&
+    targetStatusName === APPOINTMENT_STATUS_NAMES.FINALIZED
+  )
+}
+
+export function getAvailableAppointmentActions({
+  appointment,
+  roleName,
+  user,
+} = {}) {
+  if (!isAppointmentInRoleScope(appointment, roleName, user)) {
+    return []
+  }
+
+  const actions = []
+  const appointmentStatus = appointment?.estadoCita
+
+  if (appointmentStatus?.permiteEdicion === true) {
+    actions.push('edit')
+  }
+
+  if (appointmentStatus?.permiteCancelacionCliente === true) {
+    actions.push('cancel')
+  }
+
+  if (roleName === ROLES.ADMIN || roleName === ROLES.EMPLOYEE) {
+    actions.push('changeStatus')
+  }
+
+  return actions
 }
 
 export function getAppointmentClientName(appointment) {

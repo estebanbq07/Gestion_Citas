@@ -37,7 +37,6 @@ import { getActiveServices } from '@/services/servicesService'
 import { getClientUsers } from '@/services/usersService'
 
 const INVALID_RESPONSE_CODE = 'INVALID_APPOINTMENT_OPTIONS_RESPONSE'
-const MINIMUM_DATE = getTodayDateKey()
 
 function createInitialFormData(userId) {
   return {
@@ -106,8 +105,8 @@ export function CreateAppointmentPage() {
     message: '',
   })
   const [retryCount, setRetryCount] = useState(0)
+  const [minimumDate] = useState(getTodayDateKey)
   const submittingRef = useRef(false)
-  const minimumDate = MINIMUM_DATE
   const effectiveFormData = showClientSelector
     ? formData
     : { ...formData, clienteId: user?.id ? String(user.id) : '' }

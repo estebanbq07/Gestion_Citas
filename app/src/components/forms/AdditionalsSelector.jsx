@@ -15,17 +15,21 @@ export function AdditionalsSelector({
   isLoading = false,
   id = 'adicionalIds',
 }) {
-  const availableAdditionals = Array.isArray(additionals)
-    ? additionals.filter(
-        (additional) =>
-          getAdditionalId(additional?.id) !== null &&
-          additional?.activo !== false,
-      )
-    : []
   const normalizedSelectedIds = Array.isArray(selectedIds)
     ? selectedIds
         .map(getAdditionalId)
         .filter((additionalId) => additionalId !== null)
+    : []
+  const availableAdditionals = Array.isArray(additionals)
+    ? additionals.filter((additional) => {
+        const additionalId = getAdditionalId(additional?.id)
+
+        return (
+          additionalId !== null &&
+          (additional?.activo === true ||
+            normalizedSelectedIds.includes(additionalId))
+        )
+      })
     : []
   const descriptionId = `${id}-description`
   const errorId = `${id}-error`
@@ -71,6 +75,7 @@ export function AdditionalsSelector({
             const additionalId = getAdditionalId(additional.id)
             const inputId = `${id}-${additionalId}`
             const isSelected = normalizedSelectedIds.includes(additionalId)
+            const isActive = additional?.activo === true
             const name =
               typeof additional.nombre === 'string' && additional.nombre.trim()
                 ? additional.nombre.trim()
@@ -89,6 +94,7 @@ export function AdditionalsSelector({
                   type="checkbox"
                   value={additionalId}
                   checked={isSelected}
+                  disabled={!isActive && !isSelected}
                   className="mt-0.5 size-4 accent-primary"
                   onChange={(event) =>
                     handleChange(additionalId, event.target.checked)
@@ -97,6 +103,7 @@ export function AdditionalsSelector({
                 <span className="min-w-0 space-y-1">
                   <span className="block break-words text-sm font-medium">
                     {name}
+                    {!isActive ? ' · No disponible' : ''}
                   </span>
                   {formattedPrice ? (
                     <span className="block text-xs text-muted-foreground">
