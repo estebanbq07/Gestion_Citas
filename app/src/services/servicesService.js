@@ -11,6 +11,10 @@ export function getServices(options = {}) {
   return get('/servicios', options)
 }
 
+export function getActiveServices(options = {}) {
+  return get('/servicios/activos', options)
+}
+
 export function getServiceById(id, options = {}) {
   const normalizedId = String(id ?? '').trim()
 

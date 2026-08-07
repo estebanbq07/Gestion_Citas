@@ -11,6 +11,9 @@ import { DailyAgendaPage } from '@/pages/DailyAgendaPage'
 import { EditServicePage } from '@/pages/EditServicePage'
 import { EditAdditionalPage } from '@/pages/EditAdditionalPage'
 import { EmployeesPage } from '@/pages/EmployeesPage'
+import { CreateEmployeePage } from '@/pages/CreateEmployeePage'
+import { EditEmployeePage } from '@/pages/EditEmployeePage'
+import { EmployeeDetailPage } from '@/pages/EmployeeDetailPage'
 import { HomePage } from '@/pages/HomePage'
 import { LoginPage } from '@/pages/LoginPage'
 import { NotFoundPage } from '@/pages/NotFoundPage'
@@ -109,6 +112,32 @@ export function AppRouter() {
         element={
           <RoleRoute allowedRoles={ROUTE_PERMISSIONS['/empleados']}>
             <EmployeesPage />
+          </RoleRoute>
+        }
+      />
+      <Route
+        path="/empleados/nuevo"
+        element={
+          <RoleRoute allowedRoles={ROUTE_PERMISSIONS['/empleados/nuevo']}>
+            <CreateEmployeePage />
+          </RoleRoute>
+        }
+      />
+      <Route
+        path="/empleados/:id/editar"
+        element={
+          <RoleRoute
+            allowedRoles={ROUTE_PERMISSIONS['/empleados/:id/editar']}
+          >
+            <EditEmployeePage />
+          </RoleRoute>
+        }
+      />
+      <Route
+        path="/empleados/:id"
+        element={
+          <RoleRoute allowedRoles={ROUTE_PERMISSIONS['/empleados/:id']}>
+            <EmployeeDetailPage />
           </RoleRoute>
         }
       />
