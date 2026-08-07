@@ -12,6 +12,21 @@ export function getEmployees(options = {}) {
   return get('/empleados', options)
 }
 
+export function getActiveEmployeesByService(serviceId, options = {}) {
+  const normalizedServiceId = String(serviceId ?? '').trim()
+
+  if (!/^[1-9]\d*$/.test(normalizedServiceId)) {
+    const error = new Error('El identificador del servicio no es válido.')
+    error.code = 'INVALID_SERVICE_ID'
+    throw error
+  }
+
+  return get(
+    `/empleados/activos?servicioId=${encodeURIComponent(normalizedServiceId)}`,
+    options,
+  )
+}
+
 export function getEmployeeById(id, options = {}) {
   const normalizedId = String(id ?? '').trim()
 

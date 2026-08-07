@@ -7,6 +7,8 @@ import { AdditionalDetailPage } from '@/pages/AdditionalDetailPage'
 import { AdditionalsPage } from '@/pages/AdditionalsPage'
 import { CreateAdditionalPage } from '@/pages/CreateAdditionalPage'
 import { AppointmentsPage } from '@/pages/AppointmentsPage'
+import { AppointmentDetailPage } from '@/pages/AppointmentDetailPage'
+import { CreateAppointmentPage } from '@/pages/CreateAppointmentPage'
 import { DailyAgendaPage } from '@/pages/DailyAgendaPage'
 import { EditServicePage } from '@/pages/EditServicePage'
 import { EditAdditionalPage } from '@/pages/EditAdditionalPage'
@@ -19,7 +21,9 @@ import { LoginPage } from '@/pages/LoginPage'
 import { NotFoundPage } from '@/pages/NotFoundPage'
 import { ProfilePage } from '@/pages/ProfilePage'
 import { RegisterPage } from '@/pages/RegisterPage'
+import { RestrictionDetailPage } from '@/pages/RestrictionDetailPage'
 import { RestrictionsPage } from '@/pages/RestrictionsPage'
+import { ScheduleDetailPage } from '@/pages/ScheduleDetailPage'
 import { SchedulesPage } from '@/pages/SchedulesPage'
 import { ServicesPage } from '@/pages/ServicesPage'
 import { ServiceDetailPage } from '@/pages/ServiceDetailPage'
@@ -150,6 +154,14 @@ export function AppRouter() {
         }
       />
       <Route
+        path="/horarios/:id"
+        element={
+          <RoleRoute allowedRoles={ROUTE_PERMISSIONS['/horarios/:id']}>
+            <ScheduleDetailPage />
+          </RoleRoute>
+        }
+      />
+      <Route
         path="/restricciones"
         element={
           <RoleRoute allowedRoles={ROUTE_PERMISSIONS['/restricciones']}>
@@ -158,10 +170,34 @@ export function AppRouter() {
         }
       />
       <Route
+        path="/restricciones/:id"
+        element={
+          <RoleRoute allowedRoles={ROUTE_PERMISSIONS['/restricciones/:id']}>
+            <RestrictionDetailPage />
+          </RoleRoute>
+        }
+      />
+      <Route
         path="/citas"
         element={
           <RoleRoute allowedRoles={ROUTE_PERMISSIONS['/citas']}>
             <AppointmentsPage />
+          </RoleRoute>
+        }
+      />
+      <Route
+        path="/citas/nueva"
+        element={
+          <RoleRoute allowedRoles={ROUTE_PERMISSIONS['/citas/nueva']}>
+            <CreateAppointmentPage />
+          </RoleRoute>
+        }
+      />
+      <Route
+        path="/citas/:id"
+        element={
+          <RoleRoute allowedRoles={ROUTE_PERMISSIONS['/citas/:id']}>
+            <AppointmentDetailPage />
           </RoleRoute>
         }
       />

@@ -14,6 +14,10 @@ export function getAdditionals(options = {}) {
   return get('/servicios-adicionales', options)
 }
 
+export function getActiveAdditionals(options = {}) {
+  return get('/servicios-adicionales/activos', options)
+}
+
 export function getAdditionalById(id, options = {}) {
   const normalizedId = String(id ?? '').trim()
 
