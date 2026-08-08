@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import {
   ArrowLeft,
   CircleAlert,
@@ -75,6 +75,7 @@ export function AdditionalDetailPage() {
   const [statusError, setStatusError] = useState('')
   const [isStatusDialogOpen, setIsStatusDialogOpen] = useState(false)
   const [isUpdatingStatus, setIsUpdatingStatus] = useState(false)
+  const updatingStatusRef = useRef(false)
 
   useEffect(() => {
     if (successMessage) {
@@ -145,7 +146,8 @@ export function AdditionalDetailPage() {
     if (
       role?.nombre !== ROLES.ADMIN ||
       typeof additional?.activo !== 'boolean' ||
-      isUpdatingStatus
+      isUpdatingStatus ||
+      updatingStatusRef.current
     ) {
       return
     }
@@ -156,7 +158,7 @@ export function AdditionalDetailPage() {
   }
 
   function closeStatusDialog() {
-    if (!isUpdatingStatus) {
+    if (!isUpdatingStatus && !updatingStatusRef.current) {
       setIsStatusDialogOpen(false)
     }
   }
@@ -165,6 +167,7 @@ export function AdditionalDetailPage() {
     if (
       role?.nombre !== ROLES.ADMIN ||
       isUpdatingStatus ||
+      updatingStatusRef.current ||
       !additional ||
       typeof additional.activo !== 'boolean'
     ) {
@@ -174,6 +177,7 @@ export function AdditionalDetailPage() {
     const nextStatus = !additional.activo
     const additionalId = additional.id ?? id
 
+    updatingStatusRef.current = true
     setStatusError('')
     setIsUpdatingStatus(true)
 
@@ -214,6 +218,7 @@ export function AdditionalDetailPage() {
           : getErrorMessage(requestError),
       )
     } finally {
+      updatingStatusRef.current = false
       setIsUpdatingStatus(false)
     }
   }

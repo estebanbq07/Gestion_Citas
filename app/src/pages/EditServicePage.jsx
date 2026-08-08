@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { ArrowLeft, CircleAlert, Info } from 'lucide-react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 
@@ -103,6 +103,7 @@ export function EditServicePage() {
   const [fieldErrors, setFieldErrors] = useState({})
   const [isLoading, setIsLoading] = useState(true)
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const submittingRef = useRef(false)
   const [loadError, setLoadError] = useState('')
   const [apiError, setApiError] = useState('')
   const [infoMessage, setInfoMessage] = useState('')
@@ -215,7 +216,7 @@ export function EditServicePage() {
   async function handleSubmit(event) {
     event.preventDefault()
 
-    if (isSubmitting) {
+    if (isSubmitting || submittingRef.current) {
       return
     }
 
@@ -236,6 +237,7 @@ export function EditServicePage() {
       return
     }
 
+    submittingRef.current = true
     setIsSubmitting(true)
 
     try {
@@ -248,6 +250,7 @@ export function EditServicePage() {
       setFieldErrors(getServiceApiFieldErrors(requestError))
       setApiError(getErrorMessage(requestError))
     } finally {
+      submittingRef.current = false
       setIsSubmitting(false)
     }
   }

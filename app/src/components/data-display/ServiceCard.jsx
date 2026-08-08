@@ -75,7 +75,12 @@ export function ServiceCard({ service, onViewDetails }) {
 
       {canViewDetails ? (
         <CardFooter className="mt-auto">
-          <Button className="w-full" variant="outline" onClick={() => onViewDetails(service)}>
+          <Button
+            className="w-full"
+            type="button"
+            variant="outline"
+            onClick={() => onViewDetails(service)}
+          >
             Ver detalle
           </Button>
         </CardFooter>

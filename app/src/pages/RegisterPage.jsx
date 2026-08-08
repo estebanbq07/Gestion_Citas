@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useRef, useState } from 'react'
 import { Link, Navigate, useNavigate } from 'react-router-dom'
 import { CircleAlert } from 'lucide-react'
 
@@ -166,6 +166,7 @@ export function RegisterPage() {
   const [fieldErrors, setFieldErrors] = useState({})
   const [apiError, setApiError] = useState('')
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const submittingRef = useRef(false)
 
   if (isAuthLoading) {
     return <LoadingState message="Verificando sesión..." />
@@ -219,7 +220,7 @@ export function RegisterPage() {
   async function handleSubmit(event) {
     event.preventDefault()
 
-    if (isSubmitting) {
+    if (isSubmitting || submittingRef.current) {
       return
     }
 
@@ -231,6 +232,7 @@ export function RegisterPage() {
     }
 
     setApiError('')
+    submittingRef.current = true
     setIsSubmitting(true)
 
     try {
@@ -256,6 +258,7 @@ export function RegisterPage() {
       setFieldErrors(apiFieldErrors)
       setApiError(errorMessages.join(' '))
     } finally {
+      submittingRef.current = false
       setIsSubmitting(false)
     }
   }

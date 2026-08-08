@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useRef, useState } from 'react'
 import { CircleAlert } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 
@@ -27,6 +27,7 @@ export function CreateServicePage() {
   const [fieldErrors, setFieldErrors] = useState({})
   const [apiError, setApiError] = useState('')
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const submittingRef = useRef(false)
 
   function handleChange(event) {
     const { name, value } = event.target
@@ -60,7 +61,7 @@ export function CreateServicePage() {
   async function handleSubmit(event) {
     event.preventDefault()
 
-    if (isSubmitting) {
+    if (isSubmitting || submittingRef.current) {
       return
     }
 
@@ -85,6 +86,7 @@ export function CreateServicePage() {
     }
 
     setApiError('')
+    submittingRef.current = true
     setIsSubmitting(true)
 
     try {
@@ -101,6 +103,7 @@ export function CreateServicePage() {
       setFieldErrors(getServiceApiFieldErrors(requestError))
       setApiError(getErrorMessage(requestError))
     } finally {
+      submittingRef.current = false
       setIsSubmitting(false)
     }
   }

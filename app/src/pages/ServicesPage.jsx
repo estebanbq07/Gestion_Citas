@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { Search } from 'lucide-react'
 import { Link, useNavigate } from 'react-router-dom'
 
@@ -23,6 +23,7 @@ export function ServicesPage() {
   const [error, setError] = useState('')
   const [searchTerm, setSearchTerm] = useState('')
   const [sortOption, setSortOption] = useState('nameAsc')
+  const isRequestingRef = useRef(true)
 
   const requestServices = useCallback(async () => {
     const response = await getServices()
@@ -53,6 +54,8 @@ export function ServicesPage() {
         }
       })
       .finally(() => {
+        isRequestingRef.current = false
+
         if (isActive) {
           setIsLoading(false)
         }
@@ -73,12 +76,20 @@ export function ServicesPage() {
   }
 
   function handleRetry() {
+    if (isRequestingRef.current) {
+      return
+    }
+
+    isRequestingRef.current = true
     setIsLoading(true)
     setError('')
     requestServices()
       .then(setServices)
       .catch((requestError) => setError(getErrorMessage(requestError)))
-      .finally(() => setIsLoading(false))
+      .finally(() => {
+        isRequestingRef.current = false
+        setIsLoading(false)
+      })
   }
 
   if (isLoading) {

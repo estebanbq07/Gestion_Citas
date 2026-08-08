@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import {
   ArrowLeft,
   CircleAlert,
@@ -51,6 +51,7 @@ export function ServiceDetailPage() {
   const [statusError, setStatusError] = useState('')
   const [isStatusDialogOpen, setIsStatusDialogOpen] = useState(false)
   const [isUpdatingStatus, setIsUpdatingStatus] = useState(false)
+  const updatingStatusRef = useRef(false)
 
   useEffect(() => {
     if (typeof successMessage === 'string' && successMessage.trim()) {
@@ -112,7 +113,8 @@ export function ServiceDetailPage() {
     if (
       role?.nombre !== ROLES.ADMIN ||
       typeof service?.activo !== 'boolean' ||
-      isUpdatingStatus
+      isUpdatingStatus ||
+      updatingStatusRef.current
     ) {
       return
     }
@@ -123,7 +125,7 @@ export function ServiceDetailPage() {
   }
 
   function closeStatusDialog() {
-    if (!isUpdatingStatus) {
+    if (!isUpdatingStatus && !updatingStatusRef.current) {
       setIsStatusDialogOpen(false)
     }
   }
@@ -132,6 +134,7 @@ export function ServiceDetailPage() {
     if (
       role?.nombre !== ROLES.ADMIN ||
       isUpdatingStatus ||
+      updatingStatusRef.current ||
       !service ||
       typeof service.activo !== 'boolean'
     ) {
@@ -140,6 +143,7 @@ export function ServiceDetailPage() {
 
     const nextStatus = !service.activo
 
+    updatingStatusRef.current = true
     setStatusError('')
     setIsUpdatingStatus(true)
 
@@ -177,6 +181,7 @@ export function ServiceDetailPage() {
       setIsStatusDialogOpen(false)
       setStatusError(getErrorMessage(requestError))
     } finally {
+      updatingStatusRef.current = false
       setIsUpdatingStatus(false)
     }
   }

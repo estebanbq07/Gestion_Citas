@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useRef, useState } from 'react'
 import { CircleAlert, CircleCheck, RefreshCw } from 'lucide-react'
 
 import { PageHeader } from '@/components/common/PageHeader'
@@ -43,12 +43,14 @@ export function ProfilePage() {
   const [isRefreshing, setIsRefreshing] = useState(false)
   const [refreshError, setRefreshError] = useState('')
   const [successMessage, setSuccessMessage] = useState('')
+  const refreshingRef = useRef(false)
 
   async function handleRefresh() {
-    if (isRefreshing) {
+    if (isRefreshing || refreshingRef.current) {
       return
     }
 
+    refreshingRef.current = true
     setIsRefreshing(true)
     setRefreshError('')
     setSuccessMessage('')
@@ -59,6 +61,7 @@ export function ProfilePage() {
     } catch (requestError) {
       setRefreshError(getErrorMessage(requestError))
     } finally {
+      refreshingRef.current = false
       setIsRefreshing(false)
     }
   }

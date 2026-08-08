@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { Link, Navigate, useLocation, useNavigate } from 'react-router-dom'
 import { CircleAlert, CircleCheck } from 'lucide-react'
 
@@ -85,6 +85,7 @@ export function LoginPage() {
   const [validationErrors, setValidationErrors] = useState({})
   const [apiError, setApiError] = useState('')
   const [isLoading, setIsLoading] = useState(false)
+  const submittingRef = useRef(false)
 
   useEffect(() => {
     if (!registrationSuccess) {
@@ -131,7 +132,7 @@ export function LoginPage() {
   async function handleSubmit(event) {
     event.preventDefault()
 
-    if (isLoading) {
+    if (isLoading || submittingRef.current) {
       return
     }
 
@@ -143,6 +144,7 @@ export function LoginPage() {
     }
 
     setApiError('')
+    submittingRef.current = true
     setIsLoading(true)
 
     try {
@@ -154,6 +156,7 @@ export function LoginPage() {
     } catch (error) {
       setApiError(getErrorMessage(error))
     } finally {
+      submittingRef.current = false
       setIsLoading(false)
     }
   }

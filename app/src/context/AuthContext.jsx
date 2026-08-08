@@ -16,7 +16,7 @@ const AUTH_TOKEN_KEY = 'auth_token'
 export const AuthContext = createContext(undefined)
 
 function isInvalidSessionError(error) {
-  return error?.status === 401 || error?.status === 403
+  return error?.status === 401
 }
 
 function getUserFromResponse(response) {

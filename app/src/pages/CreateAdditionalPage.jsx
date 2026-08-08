@@ -20,6 +20,7 @@ export function CreateAdditionalPage() {
   const [apiError, setApiError] = useState('')
   const [isSubmitting, setIsSubmitting] = useState(false)
   const isMountedRef = useRef(true)
+  const submittingRef = useRef(false)
 
   useEffect(() => {
     isMountedRef.current = true
@@ -59,7 +60,7 @@ export function CreateAdditionalPage() {
   async function handleSubmit(event) {
     event.preventDefault()
 
-    if (isSubmitting) {
+    if (isSubmitting || submittingRef.current) {
       return
     }
 
@@ -71,6 +72,7 @@ export function CreateAdditionalPage() {
     }
 
     setApiError('')
+    submittingRef.current = true
     setIsSubmitting(true)
 
     try {
@@ -103,6 +105,8 @@ export function CreateAdditionalPage() {
       setFieldErrors(apiFieldErrors)
       setApiError(message)
     } finally {
+      submittingRef.current = false
+
       if (isMountedRef.current) {
         setIsSubmitting(false)
       }

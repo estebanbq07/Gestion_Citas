@@ -56,6 +56,7 @@ export function EditAdditionalPage() {
   const [isUnavailable, setIsUnavailable] = useState(false)
   const [retryCount, setRetryCount] = useState(0)
   const isMountedRef = useRef(true)
+  const submittingRef = useRef(false)
 
   useEffect(() => {
     isMountedRef.current = true
@@ -164,7 +165,7 @@ export function EditAdditionalPage() {
   async function handleSubmit(event) {
     event.preventDefault()
 
-    if (isSubmitting) {
+    if (isSubmitting || submittingRef.current) {
       return
     }
 
@@ -187,6 +188,7 @@ export function EditAdditionalPage() {
       return
     }
 
+    submittingRef.current = true
     setIsSubmitting(true)
 
     try {
@@ -217,6 +219,8 @@ export function EditAdditionalPage() {
       setFieldErrors(apiFieldErrors)
       setApiError(message)
     } finally {
+      submittingRef.current = false
+
       if (isMountedRef.current) {
         setIsSubmitting(false)
       }
