@@ -1,4 +1,5 @@
 import { isValidAppointmentId } from '@/lib/appointmentUtils'
+import { getApiDateKey } from '@/lib/dateTimeUtils'
 import { get, patch, post, put } from '@/services/apiClient'
 
 function createInvalidIdError(resourceName, code) {
@@ -40,6 +41,21 @@ export function getAppointmentsByEmployee(employeeId, options = {}) {
   )
 
   return get(`/citas/empleado/${encodeURIComponent(normalizedId)}`, options)
+}
+
+export function getDailyAgenda(date, options = {}) {
+  const normalizedDate = getApiDateKey(date)
+
+  if (!normalizedDate) {
+    const error = new Error('La fecha de la agenda no es válida.')
+    error.code = 'INVALID_AGENDA_DATE'
+    throw error
+  }
+
+  return get(
+    `/citas/agenda-diaria?fecha=${encodeURIComponent(normalizedDate)}`,
+    options,
+  )
 }
 
 export function getAppointmentById(id, options = {}) {
